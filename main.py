@@ -3,15 +3,19 @@ import os
 import sys
 
 def generateRandomRequests(filename, numRequests=1000, maxCylinder=4999):
+    #  Creates a file with random disk cylinder requests
     with open(filename, 'w') as file:
         for _ in range(numRequests):
             file.write(f"{random.randint(0, maxCylinder)}\n")
 
 def readDiskRequests(filename):
+    # this Reads the cylinder requests from a file.
     with open(filename, 'r') as file:
         return [int(line.strip()) for line in file]
 
 def computeHeadMovements(requests, initialPosition):
+    #  To calculate the total head movements required 
+    
     currentPos = initialPosition
     totalMovements = 0
     for req in requests:
@@ -26,7 +30,7 @@ def scanAlgorithm(requests, initialPosition):
     sortedReqs = sorted(requests)
     leftReqs = [r for r in sortedReqs if r <= initialPosition]
     rightReqs = [r for r in sortedReqs if r > initialPosition]
-
+    # mOve to the furthest left request, then move to the right requests
     movements = computeHeadMovements(leftReqs[::-1], initialPosition)
     if rightReqs:
         movements += abs(leftReqs[0] - rightReqs[0])
@@ -38,6 +42,7 @@ def cScanAlgorithm(requests, initialPosition, maxCylinder=4999):
     leftReqs = [r for r in sortedReqs if r <= initialPosition]
     rightReqs = [r for r in sortedReqs if r > initialPosition]
 
+    # move to the furthest left request, then wrap around and move to the right requests
     movements = computeHeadMovements(leftReqs[::-1], initialPosition)
     if rightReqs:
         movements += abs(leftReqs[0] - 0) + abs(maxCylinder - 0)
@@ -63,14 +68,16 @@ def optimizedCScanAlgorithm(requests, initialPosition, maxCylinder=4999):
     leftReqs = [r for r in sortedReqs if r < initialPosition]
     rightReqs = [r for r in sortedReqs if r >= initialPosition]
     movements = 0
-
+    
     if rightReqs:
         movements += computeHeadMovements(rightReqs, initialPosition)
         if leftReqs:
+            # Jump to the closest left request for minimal additional movement
             optimalJump = min(leftReqs, key=lambda x: abs(maxCylinder - x))
             movements += abs(rightReqs[-1] - optimalJump)
             movements += computeHeadMovements(leftReqs, optimalJump)
     else:
+        # If no right requests, handle left side requests
         optimalJump = min(leftReqs, key=lambda x: abs(maxCylinder - x))
         movements += abs(initialPosition - optimalJump)
         movements += computeHeadMovements(leftReqs, optimalJump)
@@ -99,7 +106,6 @@ def main():
     print("C-SCAN Total Movements:", cScanAlgorithm(requests, initialPosition))
 
 
-    # Print optimized results
     print("\nOptimized")
     print("====================================")
     print("FCFS Total Movements:", optimizedFcfsAlgorithm(requests, initialPosition))
